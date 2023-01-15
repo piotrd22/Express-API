@@ -2,29 +2,29 @@ const Product = require("../models/ProductSchema");
 
 const getProducts = async (req, res) => {
   try {
-    const {name, price, sort} = req.query
+    const { name, price, sort } = req.query;
 
     if (name) {
-        if (sort) {
-            const products = await Product.find({name: name}).sort(sort)
-            return res.status(200).json(products);
-        }
-        const products = await Product.find({name: name})
+      if (sort) {
+        const products = await Product.find({ name: name }).sort(sort);
         return res.status(200).json(products);
+      }
+      const products = await Product.find({ name: name });
+      return res.status(200).json(products);
     }
 
     if (price) {
-        if (sort) {
-            const products = await Product.find({price: price}).sort(sort)
-            return res.status(200).json(products);
-        }
-        const products = await Product.find({price: price})
+      if (sort) {
+        const products = await Product.find({ price: price }).sort(sort);
         return res.status(200).json(products);
+      }
+      const products = await Product.find({ price: price });
+      return res.status(200).json(products);
     }
 
     if (sort) {
-        const products = await Product.find({}).sort(sort)
-        return res.status(200).json(products);
+      const products = await Product.find({}).sort(sort);
+      return res.status(200).json(products);
     }
 
     const products = await Product.find({});
@@ -83,4 +83,28 @@ const deleteProduct = async (req, res) => {
   }
 };
 
-module.exports = { addProduct, getProducts, updateProduct, deleteProduct };
+const storeState = async (req, res) => {
+  try {
+    const state = await Product.aggregate([
+      {
+        $project: {
+          _id: 0,
+          name: 1,
+          quantity: 1,
+          value: { $multiply: [{ $toInt: "$quantity" }, "$price"] },
+        },
+      },
+    ]);
+    res.status(200).json(state);
+  } catch (error) {
+    res.status(500).json(error);
+  }
+};
+
+module.exports = {
+  addProduct,
+  getProducts,
+  updateProduct,
+  deleteProduct,
+  storeState,
+};
